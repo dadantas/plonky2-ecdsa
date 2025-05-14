@@ -18,6 +18,9 @@ use crate::gadgets::curve::{AffinePointTarget, CircuitBuilderCurve};
 use crate::gadgets::curve_msm::curve_msm_circuit;
 use crate::gadgets::nonnative::{CircuitBuilderNonNative, NonNativeTarget};
 
+use alloc::string::String;
+use crate::alloc::string::ToString;
+
 pub trait CircuitBuilderGlv<F: RichField + Extendable<D>, const D: usize> {
     fn secp256k1_glv_beta(&mut self) -> NonNativeTarget<Secp256K1Base>;
 
@@ -109,14 +112,14 @@ struct GLVDecompositionGenerator<F: RichField + Extendable<D>, const D: usize> {
     _phantom: PhantomData<F>,
 }
 
-impl<F: RichField + Extendable<D>, const D: usize> SimpleGenerator<F>
+impl<F: RichField + Extendable<D>, const D: usize> SimpleGenerator<F, D>
     for GLVDecompositionGenerator<F, D>
 {
     fn dependencies(&self) -> Vec<Target> {
         self.k.value.limbs.iter().map(|l| l.0).collect()
     }
 
-    fn run_once(&self, witness: &PartitionWitness<F>, out_buffer: &mut GeneratedValues<F>) {
+    fn run_once(&self, witness: &PartitionWitness<F>, out_buffer: &mut GeneratedValues<F>) -> Result<(), anyhow::Error> {
         let k = Secp256K1Scalar::from_noncanonical_biguint(
             witness.get_biguint_target(self.k.value.clone()),
         );
@@ -127,6 +130,21 @@ impl<F: RichField + Extendable<D>, const D: usize> SimpleGenerator<F>
         out_buffer.set_biguint_target(&self.k2.value, &k2.to_canonical_biguint());
         out_buffer.set_bool_target(self.k1_neg, k1_neg);
         out_buffer.set_bool_target(self.k2_neg, k2_neg);
+        Ok(())
+    }
+    
+    fn id(&self) -> String {
+        todo!()
+    }
+    
+    fn serialize(&self, dst: &mut Vec<u8>, common_data: &plonky2::plonk::circuit_data::CommonCircuitData<F, D>) -> plonky2::util::serialization::IoResult<()> {
+        todo!()
+    }
+    
+    fn deserialize(src: &mut plonky2::util::serialization::Buffer, common_data: &plonky2::plonk::circuit_data::CommonCircuitData<F, D>) -> plonky2::util::serialization::IoResult<Self>
+    where
+        Self: Sized {
+        todo!()
     }
 }
 
